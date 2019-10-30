@@ -8,7 +8,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/mlogclub/simple"
 
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type CommentController struct {
@@ -16,7 +16,7 @@ type CommentController struct {
 }
 
 func (this *CommentController) GetBy(id int64) *simple.JsonResult {
-	t := services.CommentService.Get(id)
+	t := services2.CommentService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -24,7 +24,7 @@ func (this *CommentController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *CommentController) AnyList() *simple.JsonResult {
-	list, paging := services.CommentService.Query(simple.NewParamQueries(this.Ctx).EqAuto("status").PageAuto().Desc("id"))
+	list, paging := services2.CommentService.Query(simple.NewParamQueries(this.Ctx).EqAuto("status").PageAuto().Desc("id"))
 
 	var results []map[string]interface{}
 	for _, comment := range list {
@@ -44,7 +44,7 @@ func (this *CommentController) AnyList() *simple.JsonResult {
 }
 
 func (this *CommentController) PostDeleteBy(id int64) *simple.JsonResult {
-	err := services.CommentService.Delete(id)
+	err := services2.CommentService.Delete(id)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	} else {

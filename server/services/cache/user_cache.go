@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 
 	"github.com/goburrow/cache"
 	"github.com/mlogclub/simple"
@@ -21,7 +21,7 @@ func newUserCache() *userCache {
 	return &userCache{
 		cache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = repositories.UserRepository.Get(simple.GetDB(), Key2Int64(key))
+				value = services.UserRepository.Get(simple.GetDB(), Key2Int64(key))
 				return
 			},
 			cache.WithMaximumSize(1000),

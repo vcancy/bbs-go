@@ -3,52 +3,62 @@ package services
 
 import (
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
 	"github.com/mlogclub/simple"
 )
 
-var SubjectService = newSubjectService()
-
-func newSubjectService() *subjectService {
-	return &subjectService {}
-}
+var SubjectService = &subjectService {}
 
 type subjectService struct {
 }
 
 func (this *subjectService) Get(id int64) *model.Subject {
-	return repositories.SubjectRepository.Get(simple.GetDB(), id)
+	ret := &model.Subject{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *subjectService) Take(where ...interface{}) *model.Subject {
-	return repositories.SubjectRepository.Take(simple.GetDB(), where...)
+	ret := &model.Subject{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *subjectService) QueryCnd(cnd *simple.QueryCnd) (list []model.Subject, err error) {
-	return repositories.SubjectRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *subjectService) QueryCnd(cnd *simple.SqlCnd) (list []model.Subject, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *subjectService) Query(queries *simple.ParamQueries) (list []model.Subject, paging *simple.Paging) {
-	return repositories.SubjectRepository.Query(simple.GetDB(), queries)
+func (this *subjectService) Query(params *simple.QueryParams) (list []model.Subject, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.Subject{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *subjectService) Create(t *model.Subject) error {
-	return repositories.SubjectRepository.Create(simple.GetDB(), t)
+func (this *subjectService) Create(t *model.Subject) (*model.Subject, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *subjectService) Update(t *model.Subject) error {
-	return repositories.SubjectRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *subjectService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.SubjectRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.Subject{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *subjectService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.SubjectRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.Subject{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (this *subjectService) Delete(id int64) {
-	repositories.SubjectRepository.Delete(simple.GetDB(), id)
+func (this *subjectService) Delete(id int64) error {
+	return simple.DB().Delete(&model.Subject{}, "id = ?", id).Error
 }
 

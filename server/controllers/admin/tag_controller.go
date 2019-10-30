@@ -3,7 +3,7 @@ package admin
 import (
 	"github.com/kataras/iris"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 	"github.com/mlogclub/simple"
 	"strconv"
 )
@@ -13,7 +13,7 @@ type TagController struct {
 }
 
 func (this *TagController) GetBy(id int64) *simple.JsonResult {
-	t := services.TagService.Get(id)
+	t := services2.TagService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -21,7 +21,7 @@ func (this *TagController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *TagController) AnyList() *simple.JsonResult {
-	list, paging := services.TagService.Query(simple.NewParamQueries(this.Ctx).
+	list, paging := services2.TagService.Query(simple.NewParamQueries(this.Ctx).
 		LikeAuto("name").
 		EqAuto("status").
 		PageAuto().Desc("id"))
@@ -38,7 +38,7 @@ func (this *TagController) PostCreate() *simple.JsonResult {
 	if len(t.Name) == 0 {
 		return simple.JsonErrorMsg("name is required")
 	}
-	if services.TagService.GetByName(t.Name) != nil {
+	if services2.TagService.GetByName(t.Name) != nil {
 		return simple.JsonErrorMsg("标签「" + t.Name + "」已存在")
 	}
 
@@ -46,7 +46,7 @@ func (this *TagController) PostCreate() *simple.JsonResult {
 	t.CreateTime = simple.NowTimestamp()
 	t.UpdateTime = simple.NowTimestamp()
 
-	err = services.TagService.Create(t)
+	err = services2.TagService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -58,7 +58,7 @@ func (this *TagController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services.TagService.Get(id)
+	t := services2.TagService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -71,12 +71,12 @@ func (this *TagController) PostUpdate() *simple.JsonResult {
 	if len(t.Name) == 0 {
 		return simple.JsonErrorMsg("name is required")
 	}
-	if tmp := services.TagService.GetByName(t.Name); tmp != nil && tmp.Id != id {
+	if tmp := services2.TagService.GetByName(t.Name); tmp != nil && tmp.Id != id {
 		return simple.JsonErrorMsg("标签「" + t.Name + "」已存在")
 	}
 
 	t.UpdateTime = simple.NowTimestamp()
-	err = services.TagService.Update(t)
+	err = services2.TagService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -91,7 +91,7 @@ func (this *TagController) AnyListAll() *simple.JsonResult {
 	if categoryId < 0 {
 		return simple.JsonErrorMsg("请指定categoryId")
 	}
-	list, err := services.TagService.ListAll(categoryId)
+	list, err := services2.TagService.ListAll(categoryId)
 	if err != nil {
 		return simple.JsonData([]interface{}{})
 	}
@@ -100,7 +100,7 @@ func (this *TagController) AnyListAll() *simple.JsonResult {
 
 // 标签数据级联选择器
 func (this *TagController) GetCascader() *simple.JsonResult {
-	categories, err := services.CategoryService.GetCategories()
+	categories, err := services2.CategoryService.GetCategories()
 	if err != nil {
 		return simple.JsonErrorMsg("数据加载失败")
 	}
@@ -108,7 +108,7 @@ func (this *TagController) GetCascader() *simple.JsonResult {
 	var results []map[string]interface{}
 
 	for _, cat := range categories {
-		tags, err := services.TagService.ListAll(cat.Id)
+		tags, err := services2.TagService.ListAll(cat.Id)
 		if err != nil || len(tags) == 0 {
 			continue
 		}

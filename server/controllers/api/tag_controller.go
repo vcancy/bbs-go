@@ -8,8 +8,8 @@ import (
 
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
-	"github.com/mlogclub/bbs-go/services/cache"
+	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services2/cache"
 )
 
 type TagController struct {
@@ -28,7 +28,7 @@ func (this *TagController) GetBy(tagId int64) *simple.JsonResult {
 // 标签列表
 func (this *TagController) GetTags() *simple.JsonResult {
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
-	tags, paging := services.TagService.Query(simple.NewParamQueries(this.Ctx).
+	tags, paging := services2.TagService.Query(simple.NewParamQueries(this.Ctx).
 		Eq("status", model.TagStatusOk).
 		Page(page, 200).Desc("id"))
 
@@ -38,7 +38,7 @@ func (this *TagController) GetTags() *simple.JsonResult {
 // 标签自动完成
 func (this *TagController) PostAutocomplete() *simple.JsonResult {
 	input := this.Ctx.FormValue("input")
-	tags := services.TagService.Autocomplete(input)
+	tags := services2.TagService.Autocomplete(input)
 	return simple.JsonData(tags)
 }
 

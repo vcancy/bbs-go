@@ -1,112 +1,64 @@
+
 package services
 
 import (
-	"errors"
-	"strings"
-
-	"github.com/mlogclub/simple"
-
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/simple"
 )
 
-var CommentService = newCommentService()
-
-func newCommentService() *commentService {
-	return &commentService{}
-}
+var CommentService = &commentService {}
 
 type commentService struct {
 }
 
 func (this *commentService) Get(id int64) *model.Comment {
-	return repositories.CommentRepository.Get(simple.GetDB(), id)
+	ret := &model.Comment{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *commentService) Take(where ...interface{}) *model.Comment {
-	return repositories.CommentRepository.Take(simple.GetDB(), where...)
+	ret := &model.Comment{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *commentService) QueryCnd(cnd *simple.QueryCnd) (list []model.Comment, err error) {
-	return repositories.CommentRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *commentService) QueryCnd(cnd *simple.SqlCnd) (list []model.Comment, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *commentService) Query(queries *simple.ParamQueries) (list []model.Comment, paging *simple.Paging) {
-	return repositories.CommentRepository.Query(simple.GetDB(), queries)
+func (this *commentService) Query(params *simple.QueryParams) (list []model.Comment, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.Comment{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *commentService) Create(t *model.Comment) error {
-	return repositories.CommentRepository.Create(simple.GetDB(), t)
+func (this *commentService) Create(t *model.Comment) (*model.Comment, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *commentService) Update(t *model.Comment) error {
-	return repositories.CommentRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *commentService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.CommentRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.Comment{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *commentService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.CommentRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.Comment{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
 func (this *commentService) Delete(id int64) error {
-	return repositories.CommentRepository.UpdateColumn(simple.GetDB(), id, "status", model.CommentStatusDeleted)
+	return simple.DB().Delete(&model.Comment{}, "id = ?", id).Error
 }
 
-// 发表评论
-func (this *commentService) Publish(userId int64, form *model.CreateCommentForm) (*model.Comment, error) {
-	form.Content = strings.TrimSpace(form.Content)
-
-	if len(form.EntityType) == 0 {
-		return nil, errors.New("参数非法")
-	}
-	if form.EntityId <= 0 {
-		return nil, errors.New("参数非法")
-	}
-	if len(form.Content) == 0 {
-		return nil, errors.New("请输入评论内容")
-	}
-	comment := &model.Comment{
-		UserId:     userId,
-		EntityType: form.EntityType,
-		EntityId:   form.EntityId,
-		Content:    form.Content,
-		QuoteId:    form.QuoteId,
-		Status:     model.CommentStatusOk,
-		CreateTime: simple.NowTimestamp(),
-	}
-	if err := repositories.CommentRepository.Create(simple.GetDB(), comment); err != nil {
-		return nil, err
-	}
-
-	// 更新帖子最后回复时间
-	if form.EntityType == model.EntityTypeTopic {
-		TopicService.OnComment(form.EntityId, simple.NowTimestamp())
-	}
-
-	// 发送消息
-	MessageService.SendCommentMsg(comment)
-
-	return comment, nil
-}
-
-// 统计数量
-func (this *commentService) Count(entityType string, entityId int64) int64 {
-	var count int64 = 0
-	simple.GetDB().Model(&model.Comment{}).Where("entity_type = ? and entity_id = ?", entityType, entityId).Count(&count)
-	return count
-}
-
-// 列表
-func (this *commentService) List(entityType string, entityId int64, cursor int64) (list []model.Comment, err error) {
-	if cursor > 0 {
-		err = simple.GetDB().Where("entity_type = ? and entity_id = ? and status = ? and id < ?", entityType,
-			entityId, model.CommentStatusOk, cursor).Order("id desc").Limit(20).Find(&list).Error
-	} else {
-		err = simple.GetDB().Where("entity_type = ? and entity_id = ? and status = ?", entityType, entityId,
-			model.CommentStatusOk).Order("id desc").Limit(20).Find(&list).Error
-	}
-	return
-}

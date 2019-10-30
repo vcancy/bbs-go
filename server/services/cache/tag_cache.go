@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type tagCache struct {
@@ -23,7 +23,7 @@ func newTagCache() *tagCache {
 	return &tagCache{
 		cache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = repositories.TagRepository.Get(simple.GetDB(), Key2Int64(key))
+				value = services.TagRepository.Get(simple.GetDB(), Key2Int64(key))
 				return
 			},
 			cache.WithMaximumSize(1000),
@@ -56,7 +56,7 @@ func newTagCache() *tagCache {
 		),
 		allTagsCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				tags, e := repositories.TagRepository.QueryCnd(simple.GetDB(), simple.NewQueryCnd("status = ?", model.TagStatusOk))
+				tags, e := services.TagRepository.QueryCnd(simple.GetDB(), simple.NewQueryCnd("status = ?", model.TagStatusOk))
 				if e != nil {
 					return
 				}

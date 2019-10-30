@@ -8,7 +8,7 @@ import (
 
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type CommentController struct {
@@ -27,7 +27,7 @@ func (this *CommentController) GetList() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	list, err := services.CommentService.List(entityType, entityId, cursor)
+	list, err := services2.CommentService.List(entityType, entityId, cursor)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -42,7 +42,7 @@ func (this *CommentController) GetList() *simple.JsonResult {
 }
 
 func (this *CommentController) PostCreate() *simple.JsonResult {
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
@@ -53,7 +53,7 @@ func (this *CommentController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	comment, err := services.CommentService.Publish(user.Id, form)
+	comment, err := services2.CommentService.Publish(user.Id, form)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

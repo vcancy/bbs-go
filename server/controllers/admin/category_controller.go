@@ -7,7 +7,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type CategoryController struct {
@@ -15,7 +15,7 @@ type CategoryController struct {
 }
 
 func (this *CategoryController) GetBy(id int64) *simple.JsonResult {
-	t := services.CategoryService.Get(id)
+	t := services2.CategoryService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -23,7 +23,7 @@ func (this *CategoryController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *CategoryController) AnyList() *simple.JsonResult {
-	list, paging := services.CategoryService.Query(simple.NewParamQueries(this.Ctx).
+	list, paging := services2.CategoryService.Query(simple.NewParamQueries(this.Ctx).
 		LikeAuto("name").
 		EqAuto("status").
 		PageAuto().Desc("id"))
@@ -41,7 +41,7 @@ func (this *CategoryController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg("name is required")
 	}
 
-	if services.CategoryService.FindByName(t.Name) != nil {
+	if services2.CategoryService.FindByName(t.Name) != nil {
 		return simple.JsonErrorMsg("分类「" + t.Name + "」已存在")
 	}
 
@@ -49,7 +49,7 @@ func (this *CategoryController) PostCreate() *simple.JsonResult {
 	t.CreateTime = simple.NowTimestamp()
 	t.UpdateTime = simple.NowTimestamp()
 
-	err = services.CategoryService.Create(t)
+	err = services2.CategoryService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -61,7 +61,7 @@ func (this *CategoryController) PostUpdate() *simple.JsonResult {
 	if id <= 0 {
 		return simple.JsonErrorMsg("id is required")
 	}
-	t := services.CategoryService.Get(id)
+	t := services2.CategoryService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -75,13 +75,13 @@ func (this *CategoryController) PostUpdate() *simple.JsonResult {
 		return simple.JsonErrorMsg("name is required")
 	}
 
-	if tmp := services.CategoryService.FindByName(t.Name); tmp != nil && tmp.Id != id {
+	if tmp := services2.CategoryService.FindByName(t.Name); tmp != nil && tmp.Id != id {
 		return simple.JsonErrorMsg("分类「" + t.Name + "」已存在")
 	}
 
 	t.UpdateTime = simple.NowTimestamp()
 
-	err = services.CategoryService.Update(t)
+	err = services2.CategoryService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -90,7 +90,7 @@ func (this *CategoryController) PostUpdate() *simple.JsonResult {
 
 // options选项
 func (this *CategoryController) AnyOptions() *simple.JsonResult {
-	categories, err := services.CategoryService.GetCategories()
+	categories, err := services2.CategoryService.GetCategories()
 	if err != nil {
 		return simple.JsonData([]interface{}{})
 	}

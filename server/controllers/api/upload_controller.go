@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/common/oss"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 const uploadMaxBytes int64 = 1024 * 1024 * 3 // 1M
@@ -18,7 +18,7 @@ type UploadController struct {
 }
 
 func (this *UploadController) Post() *simple.JsonResult {
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
@@ -52,7 +52,7 @@ func (this *UploadController) PostEditor() {
 	errFiles := make([]string, 0)
 	succMap := make(map[string]string)
 
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		_, _ = this.Ctx.JSON(iris.Map{
 			"msg":  "请先登录",
@@ -112,7 +112,7 @@ func (this *UploadController) PostEditor() {
 
 // vditor 拷贝第三方图片
 func (this *UploadController) PostFetch() {
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		_, _ = this.Ctx.JSON(iris.Map{
 			"msg":  "请先登录",

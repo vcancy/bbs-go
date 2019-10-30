@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 var TopicCache = newTopicCache()
@@ -21,7 +21,7 @@ func newTopicCache() *topicCache {
 	return &topicCache{
 		recommendCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				topics, err := repositories.TopicRepository.QueryCnd(simple.GetDB(),
+				topics, err := services.TopicRepository.QueryCnd(simple.GetDB(),
 					simple.NewQueryCnd("status = ?", model.TopicStatusOk).Order("id desc").Size(50))
 				if err != nil {
 					logrus.Error(err)

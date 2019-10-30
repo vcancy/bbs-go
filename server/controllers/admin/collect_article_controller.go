@@ -7,7 +7,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/controllers/render"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type CollectArticleController struct {
@@ -15,7 +15,7 @@ type CollectArticleController struct {
 }
 
 func (this *CollectArticleController) GetBy(id int64) *simple.JsonResult {
-	t := services.CollectArticleService.Get(id)
+	t := services2.CollectArticleService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -23,7 +23,7 @@ func (this *CollectArticleController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *CollectArticleController) AnyList() *simple.JsonResult {
-	list, paging := services.CollectArticleService.Query(simple.NewParamQueries(this.Ctx).
+	list, paging := services2.CollectArticleService.Query(simple.NewParamQueries(this.Ctx).
 		EqAuto("rule_id").
 		EqAuto("link_id").
 		EqAuto("article_id").

@@ -3,52 +3,62 @@ package services
 
 import (
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
 	"github.com/mlogclub/simple"
 )
 
-var LinkService = newLinkService()
-
-func newLinkService() *linkService {
-	return &linkService {}
-}
+var LinkService = &linkService {}
 
 type linkService struct {
 }
 
 func (this *linkService) Get(id int64) *model.Link {
-	return repositories.LinkRepository.Get(simple.GetDB(), id)
+	ret := &model.Link{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *linkService) Take(where ...interface{}) *model.Link {
-	return repositories.LinkRepository.Take(simple.GetDB(), where...)
+	ret := &model.Link{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *linkService) QueryCnd(cnd *simple.QueryCnd) (list []model.Link, err error) {
-	return repositories.LinkRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *linkService) QueryCnd(cnd *simple.SqlCnd) (list []model.Link, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *linkService) Query(queries *simple.ParamQueries) (list []model.Link, paging *simple.Paging) {
-	return repositories.LinkRepository.Query(simple.GetDB(), queries)
+func (this *linkService) Query(params *simple.QueryParams) (list []model.Link, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.Link{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *linkService) Create(t *model.Link) error {
-	return repositories.LinkRepository.Create(simple.GetDB(), t)
+func (this *linkService) Create(t *model.Link) (*model.Link, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *linkService) Update(t *model.Link) error {
-	return repositories.LinkRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *linkService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.LinkRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.Link{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *linkService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.LinkRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.Link{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (this *linkService) Delete(id int64) {
-	repositories.LinkRepository.Delete(simple.GetDB(), id)
+func (this *linkService) Delete(id int64) error {
+	return simple.DB().Delete(&model.Link{}, "id = ?", id).Error
 }
 

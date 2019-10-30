@@ -1,0 +1,64 @@
+
+package admin
+
+import (
+	"github.com/mlogclub/bbs-go/model"
+	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/simple"
+	"github.com/kataras/iris"
+	"strconv"
+)
+
+type CommentController struct {
+	Ctx             iris.Context
+}
+
+func (this *CommentController) GetBy(id int64) *simple.JsonResult {
+	t := services.CommentService.Get(id)
+	if t == nil {
+		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
+	}
+	return simple.JsonData(t)
+}
+
+func (this *CommentController) AnyList() *simple.JsonResult {
+	list, paging := services.CommentService.Query(simple.NewQueryParams(this.Ctx).PageAuto().Desc("id"))
+	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
+}
+
+func (this *CommentController) PostCreate() *simple.JsonResult {
+	t := &model.Comment{}
+	err := this.Ctx.ReadForm(t)
+	if err != nil {
+		return simple.JsonErrorMsg(err.Error())
+	}
+
+	err = services.CommentService.Create(t)
+	if err != nil {
+		return simple.JsonErrorMsg(err.Error())
+	}
+	return simple.JsonData(t)
+}
+
+func (this *CommentController) PostUpdate() *simple.JsonResult {
+	id, err := simple.FormValueInt64(this.Ctx, "id")
+	if err != nil {
+		return simple.JsonErrorMsg(err.Error())
+	}
+	t := services.CommentService.Get(id)
+	if t == nil {
+		return simple.JsonErrorMsg("entity not found")
+	}
+
+	err = this.Ctx.ReadForm(t)
+	if err != nil {
+		return simple.JsonErrorMsg(err.Error())
+	}
+
+	err = services.CommentService.Update(t)
+	if err != nil {
+		return simple.JsonErrorMsg(err.Error())
+	}
+	return simple.JsonData(t)
+}
+

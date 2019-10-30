@@ -7,7 +7,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type ProjectController struct {
@@ -15,7 +15,7 @@ type ProjectController struct {
 }
 
 func (this *ProjectController) GetBy(id int64) *simple.JsonResult {
-	t := services.ProjectService.Get(id)
+	t := services2.ProjectService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -23,7 +23,7 @@ func (this *ProjectController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *ProjectController) AnyList() *simple.JsonResult {
-	list, paging := services.ProjectService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
+	list, paging := services2.ProjectService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
@@ -34,7 +34,7 @@ func (this *ProjectController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services.ProjectService.Create(t)
+	err = services2.ProjectService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -46,7 +46,7 @@ func (this *ProjectController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services.ProjectService.Get(id)
+	t := services2.ProjectService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -56,7 +56,7 @@ func (this *ProjectController) PostUpdate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services.ProjectService.Update(t)
+	err = services2.ProjectService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

@@ -1,126 +1,64 @@
+
 package services
 
 import (
-	"database/sql"
-	"strconv"
-	"strings"
-
-	"github.com/mlogclub/simple"
-
-	"github.com/mlogclub/bbs-go/common/github"
-	"github.com/mlogclub/bbs-go/common/qq"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/simple"
 )
 
-var ThirdAccountService = newThirdAccountService()
-
-func newThirdAccountService() *thirdAccountService {
-	return &thirdAccountService{}
-}
+var ThirdAccountService = &thirdAccountService {}
 
 type thirdAccountService struct {
 }
 
 func (this *thirdAccountService) Get(id int64) *model.ThirdAccount {
-	return repositories.ThirdAccountRepository.Get(simple.GetDB(), id)
+	ret := &model.ThirdAccount{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *thirdAccountService) Take(where ...interface{}) *model.ThirdAccount {
-	return repositories.ThirdAccountRepository.Take(simple.GetDB(), where...)
+	ret := &model.ThirdAccount{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *thirdAccountService) QueryCnd(cnd *simple.QueryCnd) (list []model.ThirdAccount, err error) {
-	return repositories.ThirdAccountRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *thirdAccountService) QueryCnd(cnd *simple.SqlCnd) (list []model.ThirdAccount, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *thirdAccountService) Query(queries *simple.ParamQueries) (list []model.ThirdAccount, paging *simple.Paging) {
-	return repositories.ThirdAccountRepository.Query(simple.GetDB(), queries)
+func (this *thirdAccountService) Query(params *simple.QueryParams) (list []model.ThirdAccount, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.ThirdAccount{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *thirdAccountService) Create(t *model.ThirdAccount) error {
-	return repositories.ThirdAccountRepository.Create(simple.GetDB(), t)
+func (this *thirdAccountService) Create(t *model.ThirdAccount) (*model.ThirdAccount, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *thirdAccountService) Update(t *model.ThirdAccount) error {
-	return repositories.ThirdAccountRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *thirdAccountService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.ThirdAccountRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.ThirdAccount{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *thirdAccountService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.ThirdAccountRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.ThirdAccount{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (this *thirdAccountService) Delete(id int64) {
-	repositories.ThirdAccountRepository.Delete(simple.GetDB(), id)
+func (this *thirdAccountService) Delete(id int64) error {
+	return simple.DB().Delete(&model.ThirdAccount{}, "id = ?", id).Error
 }
 
-func (this *thirdAccountService) GetThirdAccount(thirdType string, thirdId string) *model.ThirdAccount {
-	return repositories.ThirdAccountRepository.Take(simple.GetDB(), "third_type = ? and third_id = ?", thirdType, thirdId)
-}
-
-func (this *thirdAccountService) GetOrCreateByGithub(code, state string) (*model.ThirdAccount, error) {
-	userInfo, err := github.GetUserInfoByCode(code, state)
-	if err != nil {
-		return nil, err
-	}
-
-	account := this.GetThirdAccount(model.ThirdAccountTypeGithub, strconv.FormatInt(userInfo.Id, 10))
-	if account != nil {
-		return account, nil
-	}
-
-	nickname := userInfo.Login
-	if len(userInfo.Name) > 0 {
-		nickname = strings.TrimSpace(userInfo.Name)
-	}
-
-	userInfoJson, _ := simple.FormatJson(userInfo)
-	account = &model.ThirdAccount{
-		UserId:     sql.NullInt64{},
-		Avatar:     userInfo.AvatarUrl,
-		Nickname:   nickname,
-		ThirdType:  model.ThirdAccountTypeGithub,
-		ThirdId:    strconv.FormatInt(userInfo.Id, 10),
-		ExtraData:  userInfoJson,
-		CreateTime: simple.NowTimestamp(),
-		UpdateTime: simple.NowTimestamp(),
-	}
-	err = this.Create(account)
-	if err != nil {
-		return nil, err
-	}
-	return account, nil
-}
-
-func (this *thirdAccountService) GetOrCreateByQQ(code, state string) (*model.ThirdAccount, error) {
-	userInfo, err := qq.GetUserInfoByCode(code, state)
-	if err != nil {
-		return nil, err
-	}
-
-	account := this.GetThirdAccount(model.ThirdAccountTypeQQ, userInfo.Unionid)
-	if account != nil {
-		return account, nil
-	}
-
-	userInfoJson, _ := simple.FormatJson(userInfo)
-	account = &model.ThirdAccount{
-		UserId:     sql.NullInt64{},
-		Avatar:     userInfo.FigureurlQQ1,
-		Nickname:   strings.TrimSpace(userInfo.Nickname),
-		ThirdType:  model.ThirdAccountTypeQQ,
-		ThirdId:    userInfo.Unionid,
-		ExtraData:  userInfoJson,
-		CreateTime: simple.NowTimestamp(),
-		UpdateTime: simple.NowTimestamp(),
-	}
-	err = this.Create(account)
-	if err != nil {
-		return nil, err
-	}
-	return account, nil
-}

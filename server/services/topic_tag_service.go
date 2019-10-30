@@ -1,53 +1,64 @@
+
 package services
 
 import (
-	"github.com/mlogclub/simple"
-
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/simple"
 )
 
-var TopicTagService = newTopicTagService()
-
-func newTopicTagService() *topicTagService {
-	return &topicTagService{}
-}
+var TopicTagService = &topicTagService {}
 
 type topicTagService struct {
 }
 
 func (this *topicTagService) Get(id int64) *model.TopicTag {
-	return repositories.TopicTagRepository.Get(simple.GetDB(), id)
+	ret := &model.TopicTag{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *topicTagService) Take(where ...interface{}) *model.TopicTag {
-	return repositories.TopicTagRepository.Take(simple.GetDB(), where...)
+	ret := &model.TopicTag{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *topicTagService) QueryCnd(cnd *simple.QueryCnd) (list []model.TopicTag, err error) {
-	return repositories.TopicTagRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *topicTagService) QueryCnd(cnd *simple.SqlCnd) (list []model.TopicTag, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *topicTagService) Query(queries *simple.ParamQueries) (list []model.TopicTag, paging *simple.Paging) {
-	return repositories.TopicTagRepository.Query(simple.GetDB(), queries)
+func (this *topicTagService) Query(params *simple.QueryParams) (list []model.TopicTag, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.TopicTag{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *topicTagService) Create(t *model.TopicTag) error {
-	return repositories.TopicTagRepository.Create(simple.GetDB(), t)
+func (this *topicTagService) Create(t *model.TopicTag) (*model.TopicTag, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *topicTagService) Update(t *model.TopicTag) error {
-	return repositories.TopicTagRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *topicTagService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.TopicTagRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.TopicTag{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *topicTagService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.TopicTagRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.TopicTag{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (this *topicTagService) DeleteByTopicId(topicId int64) {
-	simple.GetDB().Model(model.TopicTag{}).Where("topic_id = ?", topicId).UpdateColumn("status", model.TopicTagStatusDeleted)
+func (this *topicTagService) Delete(id int64) error {
+	return simple.DB().Delete(&model.TopicTag{}, "id = ?", id).Error
 }
+

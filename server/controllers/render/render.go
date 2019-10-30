@@ -14,8 +14,8 @@ import (
 	"github.com/mlogclub/bbs-go/common/avatar"
 	"github.com/mlogclub/bbs-go/common/urls"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
-	"github.com/mlogclub/bbs-go/services/cache"
+	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services2/cache"
 )
 
 func BuildUserDefaultIfNull(id int64) *model.UserInfo {
@@ -199,7 +199,7 @@ func BuildTopic(topic *model.Topic) *model.TopicResponse {
 	rsp.CommentCount = topic.CommentCount
 	rsp.LikeCount = topic.LikeCount
 
-	tags := services.TopicService.GetTopicTags(topic.Id)
+	tags := services2.TopicService.GetTopicTags(topic.Id)
 	rsp.Tags = BuildTags(tags)
 
 	mr := simple.NewMd(simple.MdWithTOC()).Run(topic.Content)
@@ -236,7 +236,7 @@ func BuildSimpleTopic(topic *model.Topic) *model.TopicSimpleResponse {
 	rsp.CommentCount = topic.CommentCount
 	rsp.LikeCount = topic.LikeCount
 
-	tags := services.TopicService.GetTopicTags(topic.Id)
+	tags := services2.TopicService.GetTopicTags(topic.Id)
 	rsp.Tags = BuildTags(tags)
 	return rsp
 }
@@ -337,7 +337,7 @@ func _buildComment(comment *model.Comment, buildQuote bool) *model.CommentRespon
 	}
 
 	if buildQuote && comment.QuoteId > 0 {
-		quote := _buildComment(services.CommentService.Get(comment.QuoteId), false)
+		quote := _buildComment(services2.CommentService.Get(comment.QuoteId), false)
 		if quote != nil {
 			ret.Quote = quote
 			ret.QuoteContent = template.HTML(quote.User.Nickname+"：") + quote.Content
@@ -371,7 +371,7 @@ func BuildFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 	rsp.CreateTime = favorite.CreateTime
 
 	if favorite.EntityType == model.EntityTypeArticle {
-		article := services.ArticleService.Get(favorite.EntityId)
+		article := services2.ArticleService.Get(favorite.EntityId)
 		if article == nil || article.Status != model.ArticleStatusPublished {
 			rsp.Deleted = true
 		} else {
@@ -389,7 +389,7 @@ func BuildFavorite(favorite *model.Favorite) *model.FavoriteResponse {
 			}
 		}
 	} else {
-		topic := services.TopicService.Get(favorite.EntityId)
+		topic := services2.TopicService.Get(favorite.EntityId)
 		if topic == nil || topic.Status != model.TopicStatusOk {
 			rsp.Deleted = true
 		} else {

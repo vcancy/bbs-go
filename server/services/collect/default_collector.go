@@ -10,11 +10,11 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 func NewDefaultCollector(ruleId int64) (MyCollector, error) {
-	collectRule := services.CollectRuleService.Get(ruleId)
+	collectRule := services2.CollectRuleService.Get(ruleId)
 	if collectRule == nil {
 		return nil, errors.New("没找到采集规则:" + strconv.FormatInt(ruleId, 10))
 	}
@@ -113,7 +113,7 @@ func (this *DefaultCollector) ClawArticle(c *colly.Collector) {
 		}
 
 		// 判断文章是否存在
-		if services.CollectArticleService.IsExists(sourceUrl, title) {
+		if services2.CollectArticleService.IsExists(sourceUrl, title) {
 			logrus.Warn("文章已采集，跳过..." + sourceUrl)
 			return
 		}
@@ -151,7 +151,7 @@ func (this *DefaultCollector) ClawArticle(c *colly.Collector) {
 
 		logrus.Info("采集文章：" + element.Request.URL.String())
 
-		ca, err := services.CollectArticleService.Create(this.collectRule.Id, this.rule.UserId, sourceUrl, title, summary, content)
+		ca, err := services2.CollectArticleService.Create(this.collectRule.Id, this.rule.UserId, sourceUrl, title, summary, content)
 		if err != nil {
 			logrus.Error(err)
 		} else if this.rule.AutoPublish {
@@ -159,7 +159,7 @@ func (this *DefaultCollector) ClawArticle(c *colly.Collector) {
 				logrus.Warn("没配置文章发布作者，无法发布...ruleId=" + strconv.FormatInt(this.collectRule.Id, 10))
 			} else {
 				logrus.Info("自动发布..." + strconv.FormatInt(ca.Id, 10))
-				if err := services.CollectArticleService.Publish(ca.Id); err != nil {
+				if err := services2.CollectArticleService.Publish(ca.Id); err != nil {
 					logrus.Error(err)
 				}
 			}

@@ -7,7 +7,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 var UserTokenCache = newUserTokenCache()
@@ -20,7 +20,7 @@ func newUserTokenCache() *userTokenCache {
 	return &userTokenCache{
 		cache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = repositories.UserTokenRepository.GetByToken(simple.GetDB(), key.(string))
+				value = services.UserTokenRepository.GetByToken(simple.GetDB(), key.(string))
 				return
 			},
 			cache.WithMaximumSize(1000),

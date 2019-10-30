@@ -3,7 +3,7 @@ package cache
 import (
 	"github.com/goburrow/cache"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 	"github.com/mlogclub/simple"
 	"time"
 )
@@ -18,7 +18,7 @@ func newSysConfigCache() *sysConfigCache {
 	return &sysConfigCache{
 		cache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = repositories.SysConfigRepository.GetByKey(simple.GetDB(), key.(string))
+				value = services.SysConfigRepository.GetByKey(simple.GetDB(), key.(string))
 				return
 			},
 			cache.WithMaximumSize(1000),

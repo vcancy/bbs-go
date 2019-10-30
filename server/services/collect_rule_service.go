@@ -3,52 +3,62 @@ package services
 
 import (
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
 	"github.com/mlogclub/simple"
 )
 
-var CollectRuleService = newCollectRuleService()
-
-func newCollectRuleService() *collectRuleService {
-	return &collectRuleService {}
-}
+var CollectRuleService = &collectRuleService {}
 
 type collectRuleService struct {
 }
 
 func (this *collectRuleService) Get(id int64) *model.CollectRule {
-	return repositories.CollectRuleRepository.Get(simple.GetDB(), id)
+	ret := &model.CollectRule{}
+	if err := simple.DB().First(ret, "id = ?", id).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
 func (this *collectRuleService) Take(where ...interface{}) *model.CollectRule {
-	return repositories.CollectRuleRepository.Take(simple.GetDB(), where...)
+	ret := &model.CollectRule{}
+	if err := simple.DB().Take(ret, where...).Error; err != nil {
+		return nil
+	}
+	return ret
 }
 
-func (this *collectRuleService) QueryCnd(cnd *simple.QueryCnd) (list []model.CollectRule, err error) {
-	return repositories.CollectRuleRepository.QueryCnd(simple.GetDB(), cnd)
+func (this *collectRuleService) QueryCnd(cnd *simple.SqlCnd) (list []model.CollectRule, err error) {
+	err = cnd.Exec(simple.DB()).Find(&list).Error
+	return
 }
 
-func (this *collectRuleService) Query(queries *simple.ParamQueries) (list []model.CollectRule, paging *simple.Paging) {
-	return repositories.CollectRuleRepository.Query(simple.GetDB(), queries)
+func (this *collectRuleService) Query(params *simple.QueryParams) (list []model.CollectRule, paging *simple.Paging) {
+	params.StartQuery(simple.DB()).Find(&list)
+	params.StartCount(simple.DB()).Model(&model.CollectRule{}).Count(&params.Paging.Total)
+	paging = params.Paging
+	return
 }
 
-func (this *collectRuleService) Create(t *model.CollectRule) error {
-	return repositories.CollectRuleRepository.Create(simple.GetDB(), t)
+func (this *collectRuleService) Create(t *model.CollectRule) (*model.CollectRule, error) {
+	if err := simple.DB().Create(t).Error; err != nil {
+		return nil, err
+	}
+	return t, nil
 }
 
 func (this *collectRuleService) Update(t *model.CollectRule) error {
-	return repositories.CollectRuleRepository.Update(simple.GetDB(), t)
+	return simple.DB().Save(t).Error
 }
 
 func (this *collectRuleService) Updates(id int64, columns map[string]interface{}) error {
-	return repositories.CollectRuleRepository.Updates(simple.GetDB(), id, columns)
+	return simple.DB().Model(&model.CollectRule{}).Where("id = ?", id).Updates(columns).Error
 }
 
 func (this *collectRuleService) UpdateColumn(id int64, name string, value interface{}) error {
-	return repositories.CollectRuleRepository.UpdateColumn(simple.GetDB(), id, name, value)
+	return simple.DB().Model(&model.CollectRule{}).Where("id = ?", id).UpdateColumn(name, value).Error
 }
 
-func (this *collectRuleService) Delete(id int64) {
-	repositories.CollectRuleRepository.Delete(simple.GetDB(), id)
+func (this *collectRuleService) Delete(id int64) error {
+	return simple.DB().Delete(&model.CollectRule{}, "id = ?", id).Error
 }
 

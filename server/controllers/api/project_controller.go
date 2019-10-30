@@ -7,9 +7,9 @@ import (
 
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
-	"github.com/mlogclub/bbs-go/services/collect/oschina"
-	"github.com/mlogclub/bbs-go/services/collect/studygolang"
+	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services2/collect/oschina"
+	"github.com/mlogclub/bbs-go/services2/collect/studygolang"
 )
 
 type ProjectController struct {
@@ -17,7 +17,7 @@ type ProjectController struct {
 }
 
 func (this *ProjectController) GetCollect1() *simple.JsonResult {
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil || user.Id != 1 {
 		return simple.JsonErrorMsg("无权限")
 	}
@@ -26,10 +26,10 @@ func (this *ProjectController) GetCollect1() *simple.JsonResult {
 			studygolang.GetStudyGoLangPage(i, func(url string) {
 				p := studygolang.GetStudyGolangProject(url)
 				if p != nil {
-					temp := services.ProjectService.Take("name = ?", p.Name)
+					temp := services2.ProjectService.Take("name = ?", p.Name)
 					if temp == nil {
 						logrus.Info("采集项目：" + p.Name + ", " + url)
-						_, _ = services.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
+						_, _ = services2.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
 							model.ContentTypeMarkdown, p.Content)
 					} else {
 						logrus.Warn("项目已经存在：" + temp.Name)
@@ -44,7 +44,7 @@ func (this *ProjectController) GetCollect1() *simple.JsonResult {
 }
 
 func (this *ProjectController) GetCollect2() *simple.JsonResult {
-	user := services.UserTokenService.GetCurrent(this.Ctx)
+	user := services2.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil || user.Id != 1 {
 		return simple.JsonErrorMsg("无权限")
 	}
@@ -59,13 +59,13 @@ func (this *ProjectController) GetCollect2() *simple.JsonResult {
 				if p == nil {
 					continue
 				}
-				temp := services.ProjectService.Take("name = ?", p.Name)
+				temp := services2.ProjectService.Take("name = ?", p.Name)
 				if temp != nil {
 					logrus.Warn("项目已经存在：" + temp.Name)
 					continue
 				}
 				logrus.Info("采集项目：" + p.Name + ", " + url)
-				_, _ = services.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
+				_, _ = services2.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
 					model.ContentTypeHtml, p.Content)
 			}
 		}
@@ -74,7 +74,7 @@ func (this *ProjectController) GetCollect2() *simple.JsonResult {
 }
 
 func (this *ProjectController) GetBy(projectId int64) *simple.JsonResult {
-	project := services.ProjectService.Get(projectId)
+	project := services2.ProjectService.Get(projectId)
 	if project == nil {
 		return simple.JsonErrorMsg("项目不存在")
 	}
@@ -84,7 +84,7 @@ func (this *ProjectController) GetBy(projectId int64) *simple.JsonResult {
 func (this *ProjectController) GetProjects() *simple.JsonResult {
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
 
-	projects, paging := services.ProjectService.Query(simple.NewParamQueries(this.Ctx).
+	projects, paging := services2.ProjectService.Query(simple.NewParamQueries(this.Ctx).
 		Page(page, 20).Desc("id"))
 
 	return simple.JsonPageData(render.BuildSimpleProjects(projects), paging)

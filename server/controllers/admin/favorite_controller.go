@@ -7,7 +7,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services2"
 )
 
 type FavoriteController struct {
@@ -15,7 +15,7 @@ type FavoriteController struct {
 }
 
 func (this *FavoriteController) GetBy(id int64) *simple.JsonResult {
-	t := services.FavoriteService.Get(id)
+	t := services2.FavoriteService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -23,7 +23,7 @@ func (this *FavoriteController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *FavoriteController) AnyList() *simple.JsonResult {
-	list, paging := services.FavoriteService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
+	list, paging := services2.FavoriteService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
@@ -31,7 +31,7 @@ func (this *FavoriteController) PostCreate() *simple.JsonResult {
 	t := &model.Favorite{}
 	this.Ctx.ReadForm(t)
 
-	err := services.FavoriteService.Create(t)
+	err := services2.FavoriteService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -43,14 +43,14 @@ func (this *FavoriteController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services.FavoriteService.Get(id)
+	t := services2.FavoriteService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
 
 	this.Ctx.ReadForm(t)
 
-	err = services.FavoriteService.Update(t)
+	err = services2.FavoriteService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

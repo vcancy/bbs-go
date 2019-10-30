@@ -3,7 +3,7 @@ package cache
 import (
 	"github.com/goburrow/cache"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/repositories"
+	"github.com/mlogclub/bbs-go/services"
 	"github.com/mlogclub/simple"
 	"github.com/sirupsen/logrus"
 	"time"
@@ -20,7 +20,7 @@ func newCategoryCache() *categoryCache {
 	return &categoryCache{
 		cache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				value = repositories.CategoryRepository.Get(simple.GetDB(), Key2Int64(key))
+				value = services.CategoryRepository.Get(simple.GetDB(), Key2Int64(key))
 				return
 			},
 			cache.WithMaximumSize(1000),
@@ -28,7 +28,7 @@ func newCategoryCache() *categoryCache {
 		),
 		allCategoriesCache: cache.NewLoadingCache(
 			func(key cache.Key) (value cache.Value, e error) {
-				list, e := repositories.CategoryRepository.GetCategories()
+				list, e := services.CategoryRepository.GetCategories()
 				if e != nil {
 					return
 				}
