@@ -8,7 +8,7 @@ import (
 	"github.com/mlogclub/bbs-go/common/qq"
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type LoginController struct {
@@ -24,7 +24,7 @@ func (this *LoginController) PostSignup() *simple.JsonResult {
 		nickname   = this.Ctx.PostValueTrim("nickname")
 		ref        = this.Ctx.FormValue("ref")
 	)
-	user, err := services2.UserService.SignUp(username, "", nickname, "", password, rePassword)
+	user, err := services.UserService.SignUp(username, "", nickname, "", password, rePassword)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -38,7 +38,7 @@ func (this *LoginController) PostSignin() *simple.JsonResult {
 		password = this.Ctx.PostValueTrim("password")
 		ref      = this.Ctx.FormValue("ref")
 	)
-	user, err := services2.UserService.SignIn(username, password)
+	user, err := services.UserService.SignIn(username, password)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -47,7 +47,7 @@ func (this *LoginController) PostSignin() *simple.JsonResult {
 
 // 退出登录
 func (this *LoginController) GetSignout() *simple.JsonResult {
-	err := services2.UserTokenService.Signout(this.Ctx)
+	err := services.UserTokenService.Signout(this.Ctx)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -66,12 +66,12 @@ func (this *LoginController) GetGithubCallback() *simple.JsonResult {
 	code := this.Ctx.FormValue("code")
 	state := this.Ctx.FormValue("state")
 
-	thirdAccount, err := services2.ThirdAccountService.GetOrCreateByGithub(code, state)
+	thirdAccount, err := services.ThirdAccountService.GetOrCreateByGithub(code, state)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	user, codeErr := services2.UserService.SignInByThirdAccount(thirdAccount)
+	user, codeErr := services.UserService.SignInByThirdAccount(thirdAccount)
 	if codeErr != nil {
 		return simple.JsonError(codeErr)
 	} else {
@@ -91,12 +91,12 @@ func (this *LoginController) GetQqCallback() *simple.JsonResult {
 	code := this.Ctx.FormValue("code")
 	state := this.Ctx.FormValue("state")
 
-	thirdAccount, err := services2.ThirdAccountService.GetOrCreateByQQ(code, state)
+	thirdAccount, err := services.ThirdAccountService.GetOrCreateByQQ(code, state)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	user, codeErr := services2.UserService.SignInByThirdAccount(thirdAccount)
+	user, codeErr := services.UserService.SignInByThirdAccount(thirdAccount)
 	if codeErr != nil {
 		return simple.JsonError(codeErr)
 	} else {
@@ -106,7 +106,7 @@ func (this *LoginController) GetQqCallback() *simple.JsonResult {
 
 // user: login user, ref: 登录来源地址，需要控制登录成功之后跳转到该地址
 func (this *LoginController) GenerateLoginResult(user *model.User, ref string) *simple.JsonResult {
-	token, err := services2.UserTokenService.Generate(user.Id)
+	token, err := services.UserTokenService.Generate(user.Id)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

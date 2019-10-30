@@ -1,12 +1,13 @@
-
 package services
 
 import (
-	"github.com/mlogclub/bbs-go/model"
+	"github.com/jinzhu/gorm"
 	"github.com/mlogclub/simple"
+
+	"github.com/mlogclub/bbs-go/model"
 )
 
-var ArticleTagService = &articleTagService {}
+var ArticleTagService = &articleTagService{}
 
 type articleTagService struct {
 }
@@ -62,3 +63,40 @@ func (this *articleTagService) Delete(id int64) error {
 	return simple.DB().Delete(&model.ArticleTag{}, "id = ?", id).Error
 }
 
+func (this *articleTagService) DeleteByArticleId(topicId int64) {
+	simple.DB().Model(model.ArticleTag{}).Where("topic_id = ?", topicId).UpdateColumn("status", model.ArticleTagStatusDeleted)
+}
+
+func (this *articleTagService) CreateArticleTags(db *gorm.DB, articleId int64, tagIds []int64) {
+	if articleId <= 0 || len(tagIds) == 0 {
+		return
+	}
+
+	for _, tagId := range tagIds {
+		db.Create(&model.ArticleTag{
+			ArticleId:  articleId,
+			TagId:      tagId,
+			CreateTime: simple.NowTimestamp(),
+		})
+	}
+}
+
+func (this *articleTagService) DeleteArticleTags(db *gorm.DB, articleId int64) {
+	if articleId <= 0 {
+		return
+	}
+
+	db.Where("article_id = ?", articleId).Delete(model.ArticleTag{})
+}
+
+func (this *articleTagService) GetUnique(db *gorm.DB, articleId, tagId int64) *model.ArticleTag {
+	ret := &model.ArticleTag{}
+	if err := db.First(ret, "article_id = ? and tag_id = ?", articleId, tagId).Error; err != nil {
+		return nil
+	}
+	return ret
+}
+
+func (this *articleTagService) GetByArticleId(db *gorm.DB, articleId int64) ([]model.ArticleTag, error) {
+	return this.QueryCnd(simple.NewSqlCnd("article_id = ?", articleId))
+}

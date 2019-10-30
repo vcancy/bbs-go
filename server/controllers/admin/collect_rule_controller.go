@@ -7,8 +7,8 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/bbs-go/services2/collect"
+	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services/collect"
 )
 
 type CollectRuleController struct {
@@ -16,7 +16,7 @@ type CollectRuleController struct {
 }
 
 func (this *CollectRuleController) GetBy(id int64) *simple.JsonResult {
-	t := services2.CollectRuleService.Get(id)
+	t := services.CollectRuleService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -24,7 +24,7 @@ func (this *CollectRuleController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *CollectRuleController) AnyList() *simple.JsonResult {
-	list, paging := services2.CollectRuleService.Query(simple.NewParamQueries(this.Ctx).LikeAuto("title").EqAuto("status").PageAuto().Desc("id"))
+	list, paging := services.CollectRuleService.Query(simple.NewQueryParams(this.Ctx).LikeAuto("title").EqAuto("status").PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
@@ -42,7 +42,7 @@ func (this *CollectRuleController) PostCreate() *simple.JsonResult {
 	t.CreateTime = simple.NowTimestamp()
 	t.UpdateTime = simple.NowTimestamp()
 
-	err = services2.CollectRuleService.Create(t)
+	t, err = services.CollectRuleService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -54,7 +54,7 @@ func (this *CollectRuleController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services2.CollectRuleService.Get(id)
+	t := services.CollectRuleService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -70,7 +70,7 @@ func (this *CollectRuleController) PostUpdate() *simple.JsonResult {
 
 	t.UpdateTime = simple.NowTimestamp()
 
-	err = services2.CollectRuleService.Update(t)
+	err = services.CollectRuleService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

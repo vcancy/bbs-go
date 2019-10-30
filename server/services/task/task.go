@@ -11,9 +11,9 @@ import (
 	"github.com/mlogclub/bbs-go/common/config"
 	"github.com/mlogclub/bbs-go/common/urls"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/bbs-go/services2/collect/oschina"
-	"github.com/mlogclub/bbs-go/services2/collect/studygolang"
+	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services/collect/oschina"
+	"github.com/mlogclub/bbs-go/services/collect/studygolang"
 )
 
 const (
@@ -29,13 +29,13 @@ func CollectStudyGoLangProjectTask() {
 			logrus.Warn("项目采集失败：" + url)
 			return
 		}
-		temp := services2.ProjectService.Take("name = ?", p.Name)
+		temp := services.ProjectService.Take("name = ?", p.Name)
 		if temp != nil {
 			logrus.Warn("项目已经存在：" + temp.Name)
 			return
 		}
 		logrus.Info("采集项目：" + p.Name + ", " + url)
-		_, _ = services2.ProjectService.Publish(collectUserId, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
+		_, _ = services.ProjectService.Publish(collectUserId, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
 			model.ContentTypeMarkdown, p.Content)
 	})
 }
@@ -46,13 +46,13 @@ func CollectOschinaProjectTask() {
 	if len(urls) > 0 {
 		for _, url := range urls {
 			p := oschina.GetProject(url)
-			temp := services2.ProjectService.Take("name = ?", p.Name)
+			temp := services.ProjectService.Take("name = ?", p.Name)
 			if temp != nil {
 				logrus.Warn("项目已经存在：" + temp.Name)
 				continue
 			}
 			logrus.Info("采集项目：" + p.Name + ", " + url)
-			_, _ = services2.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
+			_, _ = services.ProjectService.Publish(2, p.Name, p.Title, p.Logo, p.Url, p.DocUrl, p.DownloadUrl,
 				model.ContentTypeHtml, p.Content)
 		}
 	}
@@ -69,7 +69,7 @@ func SitemapTask() {
 	sm.SetPretty(false)
 	sm.Create()
 
-	services2.ArticleService.ScanDesc(func(articles []model.Article) bool {
+	services.ArticleService.ScanDesc(func(articles []model.Article) bool {
 		for _, article := range articles {
 			if article.Status == model.ArticleStatusPublished {
 				articleUrl := urls.ArticleUrl(article.Id)
@@ -79,7 +79,7 @@ func SitemapTask() {
 		return true
 	})
 
-	services2.TopicService.ScanDesc(func(topics []model.Topic) bool {
+	services.TopicService.ScanDesc(func(topics []model.Topic) bool {
 		for _, topic := range topics {
 			if topic.Status == model.TopicStatusOk {
 				topicUrl := urls.TopicUrl(topic.Id)
@@ -89,7 +89,7 @@ func SitemapTask() {
 		return true
 	})
 
-	services2.ProjectService.ScanDesc(func(projects []model.Project) bool {
+	services.ProjectService.ScanDesc(func(projects []model.Project) bool {
 		for _, project := range projects {
 			projectUrl := urls.ProjectUrl(project.Id)
 			sm.Add(stm.URL{{"loc", projectUrl}, {"lastmod", simple.TimeFromTimestamp(project.CreateTime)}})
@@ -102,16 +102,16 @@ func SitemapTask() {
 
 // 生成rss
 func RssTask() {
-	services2.ArticleService.GenerateRss()
+	services.ArticleService.GenerateRss()
 
-	services2.TopicService.GenerateRss()
+	services.TopicService.GenerateRss()
 
-	services2.ProjectService.GenerateRss()
+	services.ProjectService.GenerateRss()
 }
 
 // Ping百度
 func BaiduPing() {
-	services2.ArticleService.Scan(func(articles []model.Article) bool {
+	services.ArticleService.Scan(func(articles []model.Article) bool {
 		var pushUrls []string
 		for _, article := range articles {
 			if article.Status == model.ArticleStatusPublished {
@@ -122,7 +122,7 @@ func BaiduPing() {
 		return true
 	})
 
-	services2.TopicService.Scan(func(topics []model.Topic) bool {
+	services.TopicService.Scan(func(topics []model.Topic) bool {
 		var pushUrls []string
 		for _, topic := range topics {
 			if topic.Status == model.TopicStatusOk {
@@ -133,7 +133,7 @@ func BaiduPing() {
 		return true
 	})
 
-	services2.ProjectService.Scan(func(projects []model.Project) bool {
+	services.ProjectService.Scan(func(projects []model.Project) bool {
 		var pushUrls []string
 		for _, project := range projects {
 			pushUrls = append(pushUrls, urls.ProjectUrl(project.Id))

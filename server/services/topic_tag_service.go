@@ -1,12 +1,13 @@
-
 package services
 
 import (
-	"github.com/mlogclub/bbs-go/model"
+	"github.com/jinzhu/gorm"
 	"github.com/mlogclub/simple"
+
+	"github.com/mlogclub/bbs-go/model"
 )
 
-var TopicTagService = &topicTagService {}
+var TopicTagService = &topicTagService{}
 
 type topicTagService struct {
 }
@@ -62,3 +63,24 @@ func (this *topicTagService) Delete(id int64) error {
 	return simple.DB().Delete(&model.TopicTag{}, "id = ?", id).Error
 }
 
+func (this *topicTagService) CreateTopicTags(db *gorm.DB, topicId int64, tagIds []int64) {
+	if topicId <= 0 || len(tagIds) == 0 {
+		return
+	}
+
+	for _, tagId := range tagIds {
+		simple.DB().Create(&model.TopicTag{
+			TopicId:    topicId,
+			TagId:      tagId,
+			CreateTime: simple.NowTimestamp(),
+		})
+	}
+}
+
+func (this *topicTagService) DeleteTopicTags(db *gorm.DB, topicId int64) {
+	if topicId <= 0 {
+		return
+	}
+
+	db.Where("topic_id = ?", topicId).Delete(model.TopicTag{})
+}

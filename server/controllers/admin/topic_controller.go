@@ -1,12 +1,14 @@
 package admin
 
 import (
+	"strconv"
+
 	"github.com/kataras/iris"
+	"github.com/mlogclub/simple"
+
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/simple"
-	"strconv"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type TopicController struct {
@@ -14,7 +16,7 @@ type TopicController struct {
 }
 
 func (this *TopicController) GetBy(id int64) *simple.JsonResult {
-	t := services2.TopicService.Get(id)
+	t := services.TopicService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -22,7 +24,7 @@ func (this *TopicController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *TopicController) AnyList() *simple.JsonResult {
-	list, paging := services2.TopicService.Query(simple.NewParamQueries(this.Ctx).
+	list, paging := services.TopicService.Query(simple.NewQueryParams(this.Ctx).
 		EqAuto("id").EqAuto("user_id").EqAuto("status").LikeAuto("title").PageAuto().Desc("id"))
 
 	var results []map[string]interface{}
@@ -37,7 +39,7 @@ func (this *TopicController) AnyList() *simple.JsonResult {
 		builder.Put("summary", mr.SummaryText)
 
 		// 标签
-		tags := services2.TopicService.GetTopicTags(topic.Id)
+		tags := services.TopicService.GetTopicTags(topic.Id)
 		builder.Put("tags", render.BuildTags(tags))
 
 		results = append(results, builder.Build())
@@ -54,7 +56,7 @@ func (this *TopicController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.TopicService.Create(t)
+	t, err = services.TopicService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -66,7 +68,7 @@ func (this *TopicController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services2.TopicService.Get(id)
+	t := services.TopicService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -76,7 +78,7 @@ func (this *TopicController) PostUpdate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.TopicService.Update(t)
+	err = services.TopicService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -89,7 +91,7 @@ func (this *TopicController) PostDelete() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.TopicService.Delete(id)
+	err = services.TopicService.Delete(id)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

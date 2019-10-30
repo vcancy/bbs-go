@@ -6,7 +6,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2/cache"
+	"github.com/mlogclub/bbs-go/services/cache"
 )
 
 type ConfigController struct {

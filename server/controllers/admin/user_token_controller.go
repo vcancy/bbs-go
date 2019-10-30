@@ -6,7 +6,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/mlogclub/simple"
 
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type UserTokenController struct {
@@ -14,7 +14,7 @@ type UserTokenController struct {
 }
 
 func (this *UserTokenController) GetBy(id int64) *simple.JsonResult {
-	t := services2.UserTokenService.Get(id)
+	t := services.UserTokenService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -22,6 +22,6 @@ func (this *UserTokenController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *UserTokenController) AnyList() *simple.JsonResult {
-	list, paging := services2.UserTokenService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
+	list, paging := services.UserTokenService.Query(simple.NewQueryParams(this.Ctx).PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }

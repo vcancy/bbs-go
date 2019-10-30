@@ -11,7 +11,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type LinkController struct {
@@ -19,7 +19,7 @@ type LinkController struct {
 }
 
 func (this *LinkController) GetBy(id int64) *simple.JsonResult {
-	t := services2.LinkService.Get(id)
+	t := services.LinkService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -27,7 +27,7 @@ func (this *LinkController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *LinkController) AnyList() *simple.JsonResult {
-	list, paging := services2.LinkService.Query(simple.NewParamQueries(this.Ctx).EqAuto("status").LikeAuto("title").LikeAuto("url").PageAuto().Desc("id"))
+	list, paging := services.LinkService.Query(simple.NewQueryParams(this.Ctx).EqAuto("status").LikeAuto("title").LikeAuto("url").PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
@@ -38,7 +38,7 @@ func (this *LinkController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.LinkService.Create(t)
+	t, err = services.LinkService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -50,7 +50,7 @@ func (this *LinkController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services2.LinkService.Get(id)
+	t := services.LinkService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -60,7 +60,7 @@ func (this *LinkController) PostUpdate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.LinkService.Update(t)
+	err = services.LinkService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

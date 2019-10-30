@@ -9,8 +9,8 @@ import (
 
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/bbs-go/services2/cache"
+	"github.com/mlogclub/bbs-go/services"
+	"github.com/mlogclub/bbs-go/services/cache"
 )
 
 type TopicController struct {
@@ -20,11 +20,11 @@ type TopicController struct {
 // 同步帖子相关计数
 func (this *TopicController) GetSynccount() *simple.JsonResult {
 	go func() {
-		services2.TopicService.Scan(func(topics []model.Topic) bool {
+		services.TopicService.Scan(func(topics []model.Topic) bool {
 			for _, topic := range topics {
-				commentCount := services2.CommentService.Count(model.EntityTypeTopic, topic.Id)
-				likeCount := services2.TopicLikeService.Count(topic.Id)
-				_ = services2.TopicService.Updates(topic.Id, map[string]interface{}{
+				commentCount := services.CommentService.Count(model.EntityTypeTopic, topic.Id)
+				likeCount := services.TopicLikeService.Count(topic.Id)
+				_ = services.TopicService.Updates(topic.Id, map[string]interface{}{
 					"comment_count": commentCount,
 					"like_count":    likeCount,
 				})
@@ -37,14 +37,14 @@ func (this *TopicController) GetSynccount() *simple.JsonResult {
 
 // 发表帖子
 func (this *TopicController) PostCreate() *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
 	title := strings.TrimSpace(simple.FormValue(this.Ctx, "title"))
 	content := strings.TrimSpace(simple.FormValue(this.Ctx, "content"))
 	tags := simple.FormValueStringArray(this.Ctx, "tags")
-	topic, err := services2.TopicService.Publish(user.Id, tags, title, content, nil)
+	topic, err := services.TopicService.Publish(user.Id, tags, title, content, nil)
 	if err != nil {
 		return simple.JsonError(err)
 	}
@@ -53,12 +53,12 @@ func (this *TopicController) PostCreate() *simple.JsonResult {
 
 // 编辑时获取详情
 func (this *TopicController) GetEditBy(topicId int64) *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
 
-	topic := services2.TopicService.Get(topicId)
+	topic := services.TopicService.Get(topicId)
 	if topic == nil || topic.Status != model.TopicStatusOk {
 		return simple.JsonErrorMsg("话题不存在或已被删除")
 	}
@@ -66,7 +66,7 @@ func (this *TopicController) GetEditBy(topicId int64) *simple.JsonResult {
 		return simple.JsonErrorMsg("无权限")
 	}
 
-	tags := services2.TopicService.GetTopicTags(topicId)
+	tags := services.TopicService.GetTopicTags(topicId)
 	var tagNames []string
 	if len(tags) > 0 {
 		for _, tag := range tags {
@@ -84,12 +84,12 @@ func (this *TopicController) GetEditBy(topicId int64) *simple.JsonResult {
 
 // 编辑帖子
 func (this *TopicController) PostEditBy(topicId int64) *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
 
-	topic := services2.TopicService.Get(topicId)
+	topic := services.TopicService.Get(topicId)
 	if topic == nil || topic.Status != model.TopicStatusOk {
 		return simple.JsonErrorMsg("话题不存在或已被删除")
 	}
@@ -101,7 +101,7 @@ func (this *TopicController) PostEditBy(topicId int64) *simple.JsonResult {
 	content := strings.TrimSpace(simple.FormValue(this.Ctx, "content"))
 	tags := simple.FormValueStringArray(this.Ctx, "tags")
 
-	err := services2.TopicService.Edit(topicId, tags, title, content)
+	err := services.TopicService.Edit(topicId, tags, title, content)
 	if err != nil {
 		return simple.JsonError(err)
 	}
@@ -110,18 +110,18 @@ func (this *TopicController) PostEditBy(topicId int64) *simple.JsonResult {
 
 // 删除帖子
 func (this *TopicController) PostDeleteBy(topicId int64) *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
-	topic := services2.TopicService.Get(topicId)
+	topic := services.TopicService.Get(topicId)
 	if topic == nil || topic.Status != model.TopicStatusOk {
 		return simple.JsonSuccess()
 	}
 	if topic.UserId != user.Id {
 		return simple.JsonErrorMsg("无权限")
 	}
-	err := services2.TopicService.Delete(topicId)
+	err := services.TopicService.Delete(topicId)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -130,21 +130,21 @@ func (this *TopicController) PostDeleteBy(topicId int64) *simple.JsonResult {
 
 // 帖子详情
 func (this *TopicController) GetBy(topicId int64) *simple.JsonResult {
-	topic := services2.TopicService.Get(topicId)
+	topic := services.TopicService.Get(topicId)
 	if topic == nil || topic.Status != model.TopicStatusOk {
 		return simple.JsonErrorMsg("主题不存在")
 	}
-	services2.TopicService.IncrViewCount(topicId) // 增加浏览量
+	services.TopicService.IncrViewCount(topicId) // 增加浏览量
 	return simple.JsonData(render.BuildTopic(topic))
 }
 
 // 点赞
 func (this *TopicController) GetLikeBy(topicId int64) *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
-	err := services2.TopicLikeService.Like(user.Id, topicId)
+	err := services.TopicLikeService.Like(user.Id, topicId)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -153,7 +153,7 @@ func (this *TopicController) GetLikeBy(topicId int64) *simple.JsonResult {
 
 // 最新帖子
 func (this *TopicController) GetRecent() *simple.JsonResult {
-	topics, err := services2.TopicService.QueryCnd(simple.NewQueryCnd("status = ?", model.TopicStatusOk).Order("id desc").Size(10))
+	topics, err := services.TopicService.QueryCnd(simple.NewQueryCnd("status = ?", model.TopicStatusOk).Order("id desc").Size(10))
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -166,7 +166,7 @@ func (this *TopicController) GetUserRecent() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	topics, err := services2.TopicService.QueryCnd(simple.NewQueryCnd("user_id = ? and status = ?", userId, model.TopicStatusOk).Order("id desc").Size(10))
+	topics, err := services.TopicService.QueryCnd(simple.NewQueryCnd("user_id = ? and status = ?", userId, model.TopicStatusOk).Order("id desc").Size(10))
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -181,7 +181,7 @@ func (this *TopicController) GetUserTopics() *simple.JsonResult {
 	}
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
 
-	topics, paging := services2.TopicService.Query(simple.NewParamQueries(this.Ctx).
+	topics, paging := services.TopicService.Query(simple.NewQueryParams(this.Ctx).
 		Eq("user_id", userId).
 		Eq("status", model.TopicStatusOk).
 		Page(page, 20).Desc("id"))
@@ -193,7 +193,7 @@ func (this *TopicController) GetUserTopics() *simple.JsonResult {
 func (this *TopicController) GetTopics() *simple.JsonResult {
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
 
-	topics, paging := services2.TopicService.Query(simple.NewParamQueries(this.Ctx).
+	topics, paging := services.TopicService.Query(simple.NewQueryParams(this.Ctx).
 		Eq("status", model.TopicStatusOk).
 		Page(page, 20).Desc("last_comment_time"))
 
@@ -207,17 +207,17 @@ func (this *TopicController) GetTagTopics() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	topics, paging := services2.TopicService.GetTagTopics(tagId, page)
+	topics, paging := services.TopicService.GetTagTopics(tagId, page)
 	return simple.JsonPageData(render.BuildSimpleTopics(topics), paging)
 }
 
 // 收藏
 func (this *TopicController) GetFavoriteBy(topicId int64) *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil {
 		return simple.JsonError(simple.ErrorNotLogin)
 	}
-	err := services2.FavoriteService.AddTopicFavorite(user.Id, topicId)
+	err := services.FavoriteService.AddTopicFavorite(user.Id, topicId)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

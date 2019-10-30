@@ -10,7 +10,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type LinkController struct {
@@ -18,7 +18,7 @@ type LinkController struct {
 }
 
 func (this *LinkController) GetBy(id int64) *simple.JsonResult {
-	link := services2.LinkService.Get(id)
+	link := services.LinkService.Get(id)
 	if link == nil || link.Status == model.LinkStatusDeleted {
 		return simple.JsonErrorMsg("数据不存在")
 	}
@@ -28,7 +28,7 @@ func (this *LinkController) GetBy(id int64) *simple.JsonResult {
 func (this *LinkController) GetLinks() *simple.JsonResult {
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
 
-	links, paging := services2.LinkService.Query(simple.NewParamQueries(this.Ctx).
+	links, paging := services.LinkService.Query(simple.NewQueryParams(this.Ctx).
 		Eq("status", model.LinkStatusOk).Page(page, 20).Desc("id"))
 
 	var itemList []map[string]interface{}
@@ -62,7 +62,7 @@ func (this *LinkController) PostCreate() *simple.JsonResult {
 		Status:     model.LinkStatusPending,
 		CreateTime: simple.NowTimestamp(),
 	}
-	err := services2.LinkService.Create(link)
+	err := services.LinkService.Create(link)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

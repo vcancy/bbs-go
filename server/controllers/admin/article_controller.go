@@ -11,9 +11,10 @@ import (
 
 	"github.com/mlogclub/bbs-go/controllers/render"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/bbs-go/services2/cache"
-	"github.com/mlogclub/bbs-go/services2/collect"
+	"github.com/mlogclub/bbs-go/services"
+
+	"github.com/mlogclub/bbs-go/services/cache"
+	"github.com/mlogclub/bbs-go/services/collect"
 )
 
 type ArticleController struct {
@@ -21,7 +22,7 @@ type ArticleController struct {
 }
 
 func (this *ArticleController) GetBy(id int64) *simple.JsonResult {
-	t := services2.ArticleService.Get(id)
+	t := services.ArticleService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -29,7 +30,7 @@ func (this *ArticleController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *ArticleController) AnyList() *simple.JsonResult {
-	list, paging := services2.ArticleService.Query(simple.NewParamQueries(this.Ctx).
+	list, paging := services.ArticleService.Query(simple.NewQueryParams(this.Ctx).
 		EqAuto("id").EqAuto("user_id").EqAuto("status").LikeAuto("title").PageAuto().Desc("id"))
 
 	var results []map[string]interface{}
@@ -80,7 +81,7 @@ func (this *ArticleController) PostUpdate() *simple.JsonResult {
 	if id <= 0 {
 		return simple.JsonErrorMsg("id is required")
 	}
-	t := services2.ArticleService.Get(id)
+	t := services.ArticleService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -99,7 +100,7 @@ func (this *ArticleController) PostUpdate() *simple.JsonResult {
 	}
 
 	t.UpdateTime = simple.NowTimestamp()
-	err := services2.ArticleService.Update(t)
+	err := services.ArticleService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -112,7 +113,7 @@ func (this *ArticleController) PostDelete() *simple.JsonResult {
 	if id <= 0 {
 		return simple.JsonErrorMsg("id is required")
 	}
-	err := services2.ArticleService.Delete(id)
+	err := services.ArticleService.Delete(id)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

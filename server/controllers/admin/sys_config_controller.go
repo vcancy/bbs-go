@@ -3,7 +3,7 @@ package admin
 import (
 	"encoding/json"
 	"github.com/kataras/iris"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 	"github.com/mlogclub/simple"
 	"strconv"
 )
@@ -13,7 +13,7 @@ type SysConfigController struct {
 }
 
 func (this *SysConfigController) GetBy(id int64) *simple.JsonResult {
-	t := services2.SysConfigService.Get(id)
+	t := services.SysConfigService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -21,12 +21,12 @@ func (this *SysConfigController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *SysConfigController) AnyList() *simple.JsonResult {
-	list, paging := services2.SysConfigService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
+	list, paging := services.SysConfigService.Query(simple.NewQueryParams(this.Ctx).PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
 func (this *SysConfigController) GetAll() *simple.JsonResult {
-	list := services2.SysConfigService.GetAll()
+	list := services.SysConfigService.GetAll()
 	return simple.JsonData(list)
 }
 
@@ -37,7 +37,7 @@ func (this *SysConfigController) PostSave() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	err = services2.SysConfigService.SetAll(data)
+	err = services.SysConfigService.SetAll(data)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

@@ -6,7 +6,7 @@ import (
 
 	"github.com/mlogclub/bbs-go/common/urls"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type SubjectController struct {
@@ -14,15 +14,15 @@ type SubjectController struct {
 }
 
 func (this *SubjectController) GetAnalyze() *simple.JsonResult {
-	user := services2.UserTokenService.GetCurrent(this.Ctx)
+	user := services.UserTokenService.GetCurrent(this.Ctx)
 	if user == nil || user.Id != 1 {
 		return simple.JsonErrorMsg("无权限")
 	}
 	go func() {
-		services2.ArticleService.Scan(func(articles []model.Article) bool {
+		services.ArticleService.Scan(func(articles []model.Article) bool {
 			for _, article := range articles {
 				if article.Status == model.ArticleStatusPublished {
-					services2.SubjectContentService.AnalyzeArticle(&article)
+					services.SubjectContentService.AnalyzeArticle(&article)
 				}
 			}
 			return true
@@ -32,7 +32,7 @@ func (this *SubjectController) GetAnalyze() *simple.JsonResult {
 }
 
 func (this *SubjectController) GetBy(subjectId int64) *simple.JsonResult {
-	s := services2.SubjectService.Get(subjectId)
+	s := services.SubjectService.Get(subjectId)
 	return simple.JsonData(s)
 }
 
@@ -40,12 +40,12 @@ func (this *SubjectController) GetContents() *simple.JsonResult {
 	page := simple.FormValueIntDefault(this.Ctx, "page", 1)
 	subjectId := simple.FormValueInt64Default(this.Ctx, "subjectId", 0)
 
-	params := simple.NewParamQueries(this.Ctx).Eq("deleted", false).Page(page, 20).Desc("id")
+	params := simple.NewQueryParams(this.Ctx).Eq("deleted", false).Page(page, 20).Desc("id")
 	if subjectId > 0 {
 		params = params.Eq("subject_id", subjectId)
 	}
 
-	contents, paging := services2.SubjectContentService.Query(params)
+	contents, paging := services.SubjectContentService.Query(params)
 
 	var results []map[string]interface{}
 	for _, c := range contents {
@@ -65,7 +65,7 @@ func (this *SubjectController) GetContents() *simple.JsonResult {
 			"summary":          c.Summary,
 			"createTime":       c.CreateTime,
 		}
-		s := services2.SubjectService.Get(c.SubjectId)
+		s := services.SubjectService.Get(c.SubjectId)
 		if s != nil {
 			item["subjectTitle"] = s.Title
 		}

@@ -5,7 +5,7 @@ import (
 	"github.com/mlogclub/simple"
 
 	"github.com/mlogclub/bbs-go/controllers/render"
-	"github.com/mlogclub/bbs-go/services2/cache"
+	"github.com/mlogclub/bbs-go/services/cache"
 )
 
 type CategoryController struct {

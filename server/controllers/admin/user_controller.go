@@ -10,7 +10,7 @@ import (
 	"github.com/kataras/iris"
 	"github.com/mlogclub/simple"
 
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type UserController struct {
@@ -18,7 +18,7 @@ type UserController struct {
 }
 
 func (this *UserController) GetBy(id int64) *simple.JsonResult {
-	t := services2.UserService.Get(id)
+	t := services.UserService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -26,7 +26,7 @@ func (this *UserController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *UserController) AnyList() *simple.JsonResult {
-	list, paging := services2.UserService.Query(simple.NewParamQueries(this.Ctx).EqAuto("id").LikeAuto("nickname").EqAuto("username").PageAuto().Desc("id"))
+	list, paging := services.UserService.Query(simple.NewQueryParams(this.Ctx).EqAuto("id").LikeAuto("nickname").EqAuto("username").PageAuto().Desc("id"))
 	var itemList []map[string]interface{}
 	for _, user := range list {
 		itemList = append(itemList, this.buildUserItem(&user))
@@ -40,7 +40,7 @@ func (this *UserController) PostCreate() *simple.JsonResult {
 	nickname := simple.FormValue(this.Ctx, "nickname")
 	password := simple.FormValue(this.Ctx, "password")
 
-	user, err := services2.UserService.SignUp(username, email, nickname, "", password, password)
+	user, err := services.UserService.SignUp(username, email, nickname, "", password, password)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -52,7 +52,7 @@ func (this *UserController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services2.UserService.Get(id)
+	t := services.UserService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -82,7 +82,7 @@ func (this *UserController) PostUpdate() *simple.JsonResult {
 
 	t.Roles = strings.Join(roles, ",")
 
-	err = services2.UserService.Update(t)
+	err = services.UserService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}

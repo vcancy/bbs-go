@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"github.com/mlogclub/bbs-go/common/oss"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 
 	"github.com/jinzhu/gorm"
 	"github.com/kataras/iris/core/errors"
@@ -33,16 +33,16 @@ func (this *WxbotApi) Publish(wxArticle *WxArticle) (*model.Article, error) {
 		summary = simple.GetSummary(wxArticle.TextContent, 256)
 	}
 
-	return services2.ArticleService.Publish(userId, wxArticle.Title, summary,
+	return services.ArticleService.Publish(userId, wxArticle.Title, summary,
 		wxArticle.HtmlContent, model.ContentTypeHtml, categoryId, tags, wxArticle.Url, true)
 }
 
 func (this *WxbotApi) initUser(article *WxArticle) (int64, error) {
-	user := services2.UserService.GetByUsername(article.AppID)
+	user := services.UserService.GetByUsername(article.AppID)
 	if user != nil {
 		user.Nickname = article.AppName
 		user.Description = article.WxIntro
-		_ = services2.UserService.Update(user)
+		_ = services.UserService.Update(user)
 		return user.Id, nil
 	} else {
 		avatar, err := oss.CopyImage(article.OriHead)
@@ -59,7 +59,7 @@ func (this *WxbotApi) initUser(article *WxArticle) (int64, error) {
 			CreateTime:  simple.NowTimestamp(),
 			UpdateTime:  simple.NowTimestamp(),
 		}
-		err = services2.UserService.Create(user)
+		err = services.UserService.Create(user)
 		if err != nil {
 			return 0, err
 		}
@@ -71,7 +71,7 @@ func (this *WxbotApi) initCategory(db *gorm.DB, wxArticle *WxArticle) int64 {
 	if len(wxArticle.Category) == 0 {
 		return 0
 	}
-	cat, _ := services2.CategoryService.GetOrCreate(wxArticle.Category)
+	cat, _ := services.CategoryService.GetOrCreate(wxArticle.Category)
 	if cat != nil {
 		return cat.Id
 	}

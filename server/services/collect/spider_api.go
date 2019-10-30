@@ -4,7 +4,7 @@ import (
 	"github.com/mlogclub/bbs-go/common"
 	"github.com/mlogclub/bbs-go/common/baiduai"
 	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type SpiderApi struct {
@@ -33,7 +33,7 @@ func (this *SpiderApi) Publish(article *SpiderArticle) (articleId int64, err err
 		article.Summary = common.GetSummary(article.ContentType, article.Content)
 	}
 
-	t, err := services2.ArticleService.Publish(article.UserId, article.Title, article.Summary, article.Content,
+	t, err := services.ArticleService.Publish(article.UserId, article.Title, article.Summary, article.Content,
 		article.ContentType, 0, tags, article.SourceUrl, true)
 	if err == nil {
 		articleId = t.Id

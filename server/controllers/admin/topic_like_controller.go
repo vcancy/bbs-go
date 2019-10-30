@@ -1,20 +1,21 @@
-
 package admin
 
 import (
-	"github.com/mlogclub/bbs-go/model"
-	"github.com/mlogclub/bbs-go/services2"
-	"github.com/mlogclub/simple"
-	"github.com/kataras/iris"
 	"strconv"
+
+	"github.com/kataras/iris"
+	"github.com/mlogclub/simple"
+
+	"github.com/mlogclub/bbs-go/model"
+	"github.com/mlogclub/bbs-go/services"
 )
 
 type TopicLikeController struct {
-	Ctx             iris.Context
+	Ctx iris.Context
 }
 
 func (this *TopicLikeController) GetBy(id int64) *simple.JsonResult {
-	t := services2.TopicLikeService.Get(id)
+	t := services.TopicLikeService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("Not found, id=" + strconv.FormatInt(id, 10))
 	}
@@ -22,7 +23,7 @@ func (this *TopicLikeController) GetBy(id int64) *simple.JsonResult {
 }
 
 func (this *TopicLikeController) AnyList() *simple.JsonResult {
-	list, paging := services2.TopicLikeService.Query(simple.NewParamQueries(this.Ctx).PageAuto().Desc("id"))
+	list, paging := services.TopicLikeService.Query(simple.NewQueryParams(this.Ctx).PageAuto().Desc("id"))
 	return simple.JsonData(&simple.PageResult{Results: list, Page: paging})
 }
 
@@ -33,7 +34,7 @@ func (this *TopicLikeController) PostCreate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.TopicLikeService.Create(t)
+	t, err = services.TopicLikeService.Create(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
@@ -45,7 +46,7 @@ func (this *TopicLikeController) PostUpdate() *simple.JsonResult {
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
-	t := services2.TopicLikeService.Get(id)
+	t := services.TopicLikeService.Get(id)
 	if t == nil {
 		return simple.JsonErrorMsg("entity not found")
 	}
@@ -55,10 +56,9 @@ func (this *TopicLikeController) PostUpdate() *simple.JsonResult {
 		return simple.JsonErrorMsg(err.Error())
 	}
 
-	err = services2.TopicLikeService.Update(t)
+	err = services.TopicLikeService.Update(t)
 	if err != nil {
 		return simple.JsonErrorMsg(err.Error())
 	}
 	return simple.JsonData(t)
 }
-
